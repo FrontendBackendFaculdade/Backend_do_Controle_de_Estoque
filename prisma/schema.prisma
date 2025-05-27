@@ -74,7 +74,7 @@ model CondicaoPagamento{
   Vendas Vendas[]
   Titulos Titulos[]
 
-  @@map("CodicaoDePagamento")
+  @@map("CondicaoDePagamento")
 }
 
 
