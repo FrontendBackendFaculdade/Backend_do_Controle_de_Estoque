@@ -4,37 +4,26 @@ const { PrismaClient } = pkg;
 const prisma = new PrismaClient();
 
 export default {
-    /**
-     * Cria um novo item de venda.
-     * @param {object} request - O objeto de requisição.
-     * @param {object} response - O objeto de resposta.
-     */
     async createItensVendas(request, response) {
         try {
-            const {
-                codVenda,
-                codProduto,
-                nomeProduto,
-                custoProduto,
-                quantidade,
-                custoUnitariodeVenda,
-                desconto,
-                valorTotaldeVenda
-            } = request.body;
+            const itensParaSalvar = request.body;
 
-            const itemVenda = await prisma.itensVendas.create({
-                data: {
-                    codVenda: Number(codVenda),
-                    codProduto: Number(codProduto),
-                    nomeProduto,
-                    custoProduto: parseFloat(custoProduto), // Converte para float para Decimal no Prisma
-                    quantidade: parseFloat(quantidade), // Converte para float para Float no Prisma
-                    custoUnitariodeVenda: parseFloat(custoUnitariodeVenda), // Converte para float para Decimal no Prisma
-                    desconto: parseFloat(desconto), // Converte para float para Decimal no Prisma
-                    valorTotaldeVenda: parseFloat(valorTotaldeVenda) // Converte para float para Decimal no Prisma
-                }
+            if (!Array.isArray(itensParaSalvar) || itensParaSalvar.length === 0) {
+                return response.status(400).json({
+                    message: 'O corpo da requisição deve ser um array de itens e não pode estar vazio.'
+                });
+            }
+            
+            const resultado = await prisma.itensVendas.createMany({
+                data: itensParaSalvar,
+                skipDuplicates: true,
             });
-            return response.status(201).json(itemVenda); // 201 Created
+
+            return response.status(201).json({ 
+                message: 'Venda registrada com sucesso!',
+                count: resultado.count 
+            });
+
         } catch (error) {
             return response.status(500).json({
                 message: error.message
@@ -42,11 +31,6 @@ export default {
         }
     },
 
-    /**
-     * Lista todos os itens de vendas.
-     * @param {object} request - O objeto de requisição.
-     * @param {object} response - O objeto de resposta.
-     */
     async listItensVendas(request, response) {
         try {
             const itensVendas = await prisma.itensVendas.findMany();
@@ -58,11 +42,6 @@ export default {
         }
     },
 
-    /**
-     * Encontra um item de venda pelo código.
-     * @param {object} request - O objeto de requisição.
-     * @param {object} response - O objeto de resposta.
-     */
     async findItensVendas(request, response) {
         try {
             const { codigo } = request.params;
@@ -82,11 +61,6 @@ export default {
         }
     },
 
-    /**
-     * Atualiza um item de venda existente.
-     * @param {object} request - O objeto de requisição.
-     * @param {object} response - O objeto de resposta.
-     */
     async updateItensVendas(request, response) {
         try {
             const { codigo } = request.params;
@@ -130,11 +104,6 @@ export default {
         }
     },
 
-    /**
-     * Deleta um item de venda.
-     * @param {object} request - O objeto de requisição.
-     * @param {object} response - O objeto de resposta.
-     */
     async deleteItensVendas(request, response) {
         try {
             const { codigo } = request.params;
@@ -150,7 +119,7 @@ export default {
             await prisma.itensVendas.delete({
                 where: { codigo: Number(codigo) }
             });
-            return response.status(204).send(); // 204 No Content
+            return response.status(204).send();
         } catch (error) {
             return response.status(500).json({
                 message: error.message
